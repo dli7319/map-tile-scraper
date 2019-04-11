@@ -15,7 +15,6 @@ function getMapTileUrl(x, y, z, options = {}) {
 
 
 function main() {
-
   let z = 3;
   for (let x = 0; x < 2 ** z; x++) {
     for (let y = 0; y < 2 ** z; y++) {

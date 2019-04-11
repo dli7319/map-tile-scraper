@@ -1,6 +1,7 @@
 tiles/*
 !tiles/.keep
 out.png
+parameters.json
 
 # Logs
 logs
