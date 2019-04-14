@@ -1,27 +1,41 @@
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
-const tileFolder = "tiles/";
-const zoomLevel = 3;
-const tileSize = [1024, 1024];
+
+let PARAMETERS = {
+  "TILE_URL": "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+  "ZOOM": 2,
+  "TILE_FOLDER": "tiles/"
+};
 
 main();
 
 function main() {
+  readParameters().then(stitchTiles);
+}
 
-  const z = zoomLevel;
+function readParameters() {
+  return new Promise(resolve => {
+    let filePath = process.argv.length >= 3 ? process.argv[2] : "parameters.json";
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        console.error("Cannot read parameters.json", err);
+        process.exit();
+      }
+      PARAMETERS = JSON.parse(data);
+      resolve(PARAMETERS);
+    });
+  });
+}
+
+function stitchTiles() {
+  const z = PARAMETERS.ZOOM;
   const w = 2 ** z;
   const h = 2 ** z;
 
-  const tileWidth = tileSize[0];
-  const tileHeight = tileSize[1];
-  const width = tileWidth * w;
-  const height = tileHeight * h;
+  let tileWidth;
+  let tileHeight;
 
-  const finalImage = new PNG({
-    width: width,
-    height: height,
-    filterType: -1
-  });
+  let finalImage;
   const doneArray = new Array(w);
   for (let x = 0; x < w; x++) {
     doneArray[x] = new Array(h);
@@ -30,13 +44,14 @@ function main() {
 
   for (let x = 0; x < 2 ** z; x++) {
     for (let y = 0; y < 2 ** z; y++) {
-      let fileName = tileFolder + x + "_" + y + ".png";
+      let fileName = PARAMETERS.TILE_FOLDER + x + "_" + y + ".png";
       fs.createReadStream(fileName)
         .pipe(new PNG({
           filterType: 4
         }))
         .on('parsed', function() {
           console.log("PARSED TILE " + x + "_" + y);
+          initializeFinalImage(this.width, this.height);
           storeInArray(x * tileWidth, y * tileHeight, {
             height: tileHeight,
             width: tileWidth,
@@ -48,6 +63,23 @@ function main() {
     }
   }
 
+  function initializeFinalImage(width, height) {
+    if (typeof finalImage !== 'undefined') {
+      return false;
+    }
+    tileWidth = width;
+    tileHeight = height;
+
+    const finalWidth = tileWidth * w;
+    const finalHeight = tileHeight * h;
+
+    finalImage = new PNG({
+      width: finalWidth,
+      height: finalHeight,
+      filterType: -1
+    });
+  }
+
   function storeInArray(xpos, ypos, data) {
     for (let x = 0; x < data.height; x++) {
       let offsetX = x + xpos;
@@ -55,7 +87,7 @@ function main() {
       for (let y = 0; y < data.width; y++) {
         let offsetY = y + ypos;
         // offsetY = height - offsetY;
-        let positionA = (offsetY * width + offsetX) * 4;
+        let positionA = (offsetY * finalImage.width + offsetX) * 4;
         let positionB = (y * data.width + x) * 4;
         finalImage.data[positionA] = data.data[positionB];
         finalImage.data[positionA + 1] = data.data[positionB + 1];
@@ -67,9 +99,10 @@ function main() {
 
   function checkDoneLoading() {
     if (isDoneLoading()) {
+      console.log("FINAL IMAGE SIZE: " + finalImage.width + ", " + finalImage.height);
       finalImage
         .pack()
-        .pipe(fs.createWriteStream('out.png'));
+        .pipe(fs.createWriteStream(PARAMETERS.OUTPUT_FILENAME));
     }
 
     function isDoneLoading() {

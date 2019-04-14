@@ -1,7 +1,11 @@
 const fs = require('fs');
 const fetch = require('node-fetch');
 
-const targetFolder = "tiles/";
+let PARAMETERS = {
+  "TILE_URL": "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "ZOOM": 2,
+  "TILE_FOLDER": "tiles/"
+};
 
 main();
 
@@ -9,16 +13,40 @@ function getMapTileUrl(x, y, z, options = {}) {
   if (options.resolution == null) {
     options.resolution = 4;
   }
-  let url = 'https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i' + z + '!2i' + x + '!3i' + y + '!4i256!2m3!1e0!2sm!3i461170300!3m14!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!12m4!1e26!2m2!1sstyles!2zcy50OjF8cy5lOmwudHxwLnY6b2ZmLHMudDoxN3xzLmU6bC50fHAudjpvbixzLnQ6MnxwLnY6b2ZmLHMudDo0OXxwLnY6b2ZmLHMudDo0fHAudjpvZmY!4e0!5m1!5f4!23i1301875';
-  return url;
+  return PARAMETERS.TILE_URL
+    .replace("{x}", x)
+    .replace("{y}", y)
+    .replace("{z}", z)
+    .replace("{resolution}", options.resolution);
 }
 
 
 function main() {
-  let z = 3;
+  readParameters().then(downloadTiles);
+}
+
+function readParameters() {
+  return new Promise(resolve => {
+    let filePath = process.argv.length >= 3 ? process.argv[2] : "parameters.json";
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        console.error("Cannot read parameters.json", err);
+        process.exit();
+      }
+      PARAMETERS = JSON.parse(data);
+      resolve(PARAMETERS);
+    });
+  });
+}
+
+function downloadTiles() {
+  let z = PARAMETERS.ZOOM;
+  if (!fs.existsSync(PARAMETERS.TILE_FOLDER)){
+    fs.mkdirSync(PARAMETERS.TILE_FOLDER);
+}
   for (let x = 0; x < 2 ** z; x++) {
     for (let y = 0; y < 2 ** z; y++) {
-      let fileName = targetFolder + x + "_" + y + ".png";
+      let fileName = PARAMETERS.TILE_FOLDER + x + "_" + y + ".png";
       fetch(getMapTileUrl(x, y, z))
         .then(image =>
           image.body
