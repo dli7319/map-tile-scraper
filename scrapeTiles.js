@@ -41,9 +41,9 @@ function readParameters() {
 
 function downloadTiles() {
   let z = PARAMETERS.ZOOM;
-  if (!fs.existsSync(PARAMETERS.TILE_FOLDER)){
+  if (!fs.existsSync(PARAMETERS.TILE_FOLDER)) {
     fs.mkdirSync(PARAMETERS.TILE_FOLDER);
-}
+  }
   for (let x = 0; x < 2 ** z; x++) {
     for (let y = 0; y < 2 ** z; y++) {
       let fileName = PARAMETERS.TILE_FOLDER + x + "_" + y + ".png";
