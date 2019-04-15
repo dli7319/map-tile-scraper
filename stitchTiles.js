@@ -4,7 +4,9 @@ const PNG = require('pngjs').PNG;
 let PARAMETERS = {
   "TILE_URL": "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
   "ZOOM": 2,
-  "TILE_FOLDER": "tiles/"
+  "TILE_FOLDER": "tiles/",
+  "OUTPUT_FILENAME": "output/out.png",
+  "DISTORTED_OUTPUT": "output/distorted.png"
 };
 
 main();

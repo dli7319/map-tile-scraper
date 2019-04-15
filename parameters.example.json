@@ -2,5 +2,6 @@
   "TILE_URL": "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
   "ZOOM": 2,
   "TILE_FOLDER": "tiles/",
-  "OUTPUT_FILENAME": "out.png"
+  "OUTPUT_FILENAME": "out.png",
+  "DISTORTED_OUTPUT": "output/distorted.png"
 }
