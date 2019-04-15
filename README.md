@@ -21,7 +21,7 @@ See the following [link](https://wiki.openstreetmap.org/wiki/Slippy_map_tilename
 ```C
 float2 latlng2xy_d(float2 latlng)
 {
-  float x = (1.0 - log(tan(latlng.y * M_PI / 180.0) + 1.0 / cos(latlng.y _ M_PI / 180.0)) / M_PI) / 2.0;
+  float x = (1.0 - log(tan(latlng.y * M_PI / 180.0) + 1.0 / cos(latlng.y * M_PI / 180.0)) / M_PI) / 2.0;
   float y = (latlng.x + 180.0) / 360.0;
   return float2(1.0 - x, y);
 }
