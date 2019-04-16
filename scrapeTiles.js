@@ -47,11 +47,19 @@ function downloadTiles() {
   for (let x = 0; x < 2 ** z; x++) {
     for (let y = 0; y < 2 ** z; y++) {
       let fileName = PARAMETERS.TILE_FOLDER + x + "_" + y + ".png";
-      fetch(getMapTileUrl(x, y, z))
-        .then(image =>
-          image.body
-          .pipe(fs.createWriteStream(fileName))
-          .on('close', () => console.log('image ' + fileName + ' downloaded')));
+      downloadTile(x, y, z, fileName);
     }
   }
+}
+
+function downloadTile(x, y, z, fileName) {
+  fetch(getMapTileUrl(x, y, z))
+    .then(image =>
+      image.body.pipe(fs.createWriteStream(fileName))
+      .on('close', () => console.log('image ' + fileName + ' downloaded')))
+    .catch(() => {
+      setTimeout(() => {
+        downloadTile(x, y, z, fileName);
+      }, 1000);
+    });
 }
