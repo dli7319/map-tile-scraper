@@ -1,6 +1,10 @@
-# map-tile-scraper
+# Map Tile Scraper
 
 Scrapes tiles from a tileserver and stitches them into a full size map.
+Tested with OpenStreetMap and Google Maps tile servers.
+
+# Requirements
+* Node.js
 
 # Usage
 
@@ -10,13 +14,14 @@ Scrapes tiles from a tileserver and stitches them into a full size map.
 -   Run `node scrapeTiles.js`
 -   Run `node stitchTiles.js`
 -   Check `out.png` to see if a map was properly stitched
--   Run `node distortMap.js` to convert the Mercator projection to lat/lon projection
+-   Run `node distortMap.js` to convert the Mercator projection to Equirectangular (uv = lat/lng) projection
 
 # How to texture this around a sphere
 
-To use the resultant image as a texture for a globe, you will need to distort it
-with the following shader code.  
-See the following [link](https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames).  
+Apply the distorted map to a sphere where the UVs are equally spaced.
+
+Alternatively, you can use the Mercator projection `out.png` map, transforming the coordinates with the following shader code.  
+See the following [link](https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames) for more details about the Mercator projection used by OpenStreetMap and Google Maps.  
 
 ```C
 float2 latlng2xy_d(float2 latlng)
@@ -26,3 +31,6 @@ float2 latlng2xy_d(float2 latlng)
   return float2(1.0 - x, y);
 }
 ```
+
+TODO:
+* Fix aspect ratio of Equirectangular projection.

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
+const JPEG = require('jpeg-js');
 
 let PARAMETERS = {
   "TILE_URL": "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
@@ -33,6 +34,7 @@ function stitchTiles() {
   const z = PARAMETERS.ZOOM;
   const w = 2 ** z;
   const h = 2 ** z;
+  let fileType = "png";
 
   let tileWidth;
   let tileHeight;
@@ -46,22 +48,57 @@ function stitchTiles() {
 
   for (let x = 0; x < 2 ** z; x++) {
     for (let y = 0; y < 2 ** z; y++) {
-      let fileName = PARAMETERS.TILE_FOLDER + x + "_" + y + ".png";
-      fs.createReadStream(fileName)
-        .pipe(new PNG({
-          filterType: 4
-        }))
-        .on('parsed', function() {
-          console.log("PARSED TILE " + x + "_" + y);
-          initializeFinalImage(this.width, this.height);
-          storeInArray(x * tileWidth, y * tileHeight, {
-            height: tileHeight,
-            width: tileWidth,
-            data: this.data
+      readImage(x, y);
+    }
+  }
+
+  function readImage(x, y) {
+    let fileName = PARAMETERS.TILE_FOLDER + x + "_" + y + ".png";
+    if (fileType === 'png') {
+      try {
+        fs.createReadStream(fileName)
+          .pipe(new PNG({
+            filterType: 4
+          }))
+          .on('parsed', function() {
+            console.log("PARSED TILE " + x + "_" + y);
+            initializeFinalImage(this.width, this.height);
+            storeInArray(x * tileWidth, y * tileHeight, {
+              height: tileHeight,
+              width: tileWidth,
+              data: this.data
+            });
+            doneArray[x][y] = true;
+            checkDoneLoading();
+          }).on('error', function() {
+            if (fileType == "png") {
+              fileType = "jpeg";
+            }
+            readImage(x, y);
           });
-          doneArray[x][y] = true;
-          checkDoneLoading();
+      } catch (e) {
+        fileType = "jpeg";
+      }
+    } else if (fileType == "jpeg") {
+      try {
+        var jpegData = fs.readFileSync(fileName);
+        var rawImageData = JPEG.decode(jpegData, true);
+        console.log("PARSED TILE " + x + "_" + y);
+        initializeFinalImage(rawImageData.width, rawImageData.height);
+        storeInArray(x * tileWidth, y * tileHeight, {
+          height: tileHeight,
+          width: tileWidth,
+          data: rawImageData.data
         });
+        doneArray[x][y] = true;
+        checkDoneLoading();
+      } catch (e) {
+        if (fileType == "jpeg") {
+          fileType = "unknown";
+        }
+      }
+    } else {
+      console.log("Unknown file type");
     }
   }
 
@@ -90,7 +127,7 @@ function stitchTiles() {
         let offsetY = y + ypos;
         // offsetY = height - offsetY;
         let positionA = (offsetY * finalImage.width + offsetX) * 4;
-        let positionB = (y * data.width + x) * 4;
+        let positionB = fileType == "png" ? (y * data.width + x) * 4 : (y * data.width + x) * 3;
         finalImage.data[positionA] = data.data[positionB];
         finalImage.data[positionA + 1] = data.data[positionB + 1];
         finalImage.data[positionA + 2] = data.data[positionB + 2];
