@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "jpeg-js": "^0.3.4",
-    "node-fetch": "^2.3.0",
+    "jpeg-js": "^0.3.6",
+    "node-fetch": "^2.6.0",
     "pngjs": "^3.4.0"
   }
 }

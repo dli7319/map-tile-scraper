@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const PNG = require('pngjs').PNG;
 const JPEG = require('jpeg-js');
 
@@ -139,6 +140,10 @@ function stitchTiles() {
   function checkDoneLoading() {
     if (isDoneLoading()) {
       console.log("FINAL IMAGE SIZE: " + finalImage.width + ", " + finalImage.height);
+      const outputFolder = path.dirname(PARAMETERS.OUTPUT_FILENAME);
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync();
+      }
       finalImage
         .pack()
         .pipe(fs.createWriteStream(PARAMETERS.OUTPUT_FILENAME));
