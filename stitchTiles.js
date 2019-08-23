@@ -142,7 +142,7 @@ function stitchTiles() {
       console.log("FINAL IMAGE SIZE: " + finalImage.width + ", " + finalImage.height);
       const outputFolder = path.dirname(PARAMETERS.OUTPUT_FILENAME);
       if (!fs.existsSync(outputFolder)) {
-        fs.mkdirSync();
+        fs.mkdirSync(outputFolder);
       }
       finalImage
         .pack()
